@@ -11,30 +11,30 @@ def app1():
 
     with st.expander('About this App'):
         st.write('This app calculates the Option Prices and Option Greeks based on 5 inputs - Spot Price, Strike Price, Daily Volatility, Risk Free Rate of Return and Time to expiry of Contract.')
-        st.write('The Black Scholes formula and calculations are based on the work of economists Fischer Black and Myron Scholes. App built by [Shubhro](https://www.linkedin.com/in/shubhrojyotidey/).')
+        st.write('The Black Scholes formula and calculations are based on the work of economists Fischer Black and Myron Scholes.')
 
     col1, col2 = st.columns(2)
 
     with col1:
-        spot = st.number_input('Spot Price')
+        spot = st.number_input('Spot Price', step=100)
     with col2: 
-        strike = st.number_input('Strike Price')
+        strike = st.number_input('Strike Price', min_value=1, step=100)
 
     col3, col4, col5 = st.columns(3)
 
     with col3:
-        risk = st.number_input('Risk Free Rate')
+        risk = st.number_input('Risk Free Rate', step=0.5)
     with col4:
-        dailyvol = st.number_input('Daily Volatility')
+        dailyvol = st.number_input('Daily Volatility', step=0.5)
     with col5:
-        t = st.number_input("Time to Expiry (in months)")
+        t = st.number_input("Time to Expiry (in months)", step=1)
 
     if st.button('Calculate Prices and Greeks'):
         annual_vol = (dailyvol*(252**(1/2)))/100
         rf = risk/100
         time = t/12
 
-        kenegrt = strike*(2.718281**(-rf*time))
+        kenegrt = strike*(2.718281828459045**(-rf*time))
         lnsk = np.log(spot/strike)
         v22 = (annual_vol**2)/2
         vt12 = annual_vol*(time**(1/2))
@@ -45,23 +45,28 @@ def app1():
         nd1 = norm.cdf(d1)
         nd2 = norm.cdf(d2)
 
-        callprice = spot*norm.cdf(d1) - kenegrt*norm.cdf(d2)
-        putprice = kenegrt*norm.cdf(-d2) - spot*norm.cdf(-d1)
+        ndneg1 = 1 - nd1
+        ndneg2 = 1 - nd2
 
-        call_delta = norm.cdf(d1)
-        put_delta = norm.cdf(-d1)
+        ndashd1 = (2.718281828459045**(-(d1**2)/2))/(2*3.14159265359)**(1/2)
 
-        call_gamma = norm.cdf(d1)/(spot*vt12)
+        callprice = spot*nd1 - kenegrt*nd2
+        putprice = kenegrt*ndneg2 - spot*ndneg1
+
+        call_delta = nd1
+        put_delta = ndneg1
+
+        call_gamma = ndashd1/(spot*vt12)
         put_gamma = call_gamma
 
-        call_theta = -((spot*annual_vol*norm.cdf(d1))/(2*(time**(1/2)))) - rf*kenegrt*norm.cdf(d2)
-        put_theta = -((spot*annual_vol*norm.cdf(d1))/(2*(time**(1/2)))) + rf*kenegrt*norm.cdf(-d2)
+        call_theta = -((spot*annual_vol*ndashd1)/(2*(time**(1/2)))) - rf*kenegrt*nd2
+        put_theta = -((spot*annual_vol*ndashd1)/(2*(time**(1/2)))) + rf*kenegrt*ndneg2
 
-        call_vega = spot*norm.cdf(d1)*(time**(1/2))
+        call_vega = spot*ndashd1*(time**(1/2))
         put_vega = call_vega
 
-        call_rho = kenegrt*time*norm.cdf(d2)
-        put_rho = -kenegrt*time*norm.cdf(-d2)
+        call_rho = kenegrt*time*nd2
+        put_rho = -kenegrt*time*ndneg2
 
         data = {
             "Parameter": ["Annual Volatility", "Call Price", "Put Price"],
@@ -126,26 +131,38 @@ def app1():
 def app2():
 
     st.title('Options Strategy Builder')
+
+    with st.expander('About this App'):
+        st.write('This App shows the Payoff of a single or a combination of Options Positions, based on the inputs - Strike Price, Option Type, Buy/Sell and Lot Size.')
+        st.write('Pre-built Options Strategies will be available in the future iterations of the App.')
+
     class OptionPosition:
-        def __init__(self, strike_price, option_type, lots):
+        def __init__(self, strike_price, option_type, lots, buy_or_sell):
             self.strike_price = strike_price
             self.option_type = option_type
             self.lots = lots
+            self.buy_or_sell = buy_or_sell
 
         def __hash__(self):
-            return hash((self.strike_price, self.option_type, self.lots))
+            return hash((self.strike_price, self.option_type, self.lots, self.buy_or_sell))
 
     def calculate_payoff(option_positions, underlying_price):
         total_payoff = 0
         for position in option_positions:
             if position.option_type == 'Call':
-                payoff = np.maximum(underlying_price - position.strike_price, 0) * position.lots
+                if position.buy_or_sell == 'Buy':
+                    payoff = np.maximum(underlying_price - position.strike_price, 0) * position.lots
+                else:
+                    payoff = np.maximum(position.strike_price - underlying_price, 0) * position.lots
             else:
-                payoff = np.maximum(position.strike_price - underlying_price, 0) * position.lots
+                if position.buy_or_sell == 'Buy':
+                    payoff = np.maximum(position.strike_price - underlying_price, 0) * position.lots
+                else:
+                    payoff = np.maximum(underlying_price - position.strike_price, 0) * position.lots
             total_payoff += payoff
         return total_payoff
 
-    @st.cache_resource(hash_funcs={OptionPosition: lambda x: hash((x.strike_price, x.option_type, x.lots))})
+    @st.cache_resource(hash_funcs={OptionPosition: lambda x: hash((x.strike_price, x.option_type, x.lots, x.buy_or_sell))})
     def generate_payoff_chart(option_positions, start_price, end_price, num_points):
         underlying_prices = np.linspace(start_price, end_price, num_points)
         payoffs = []
@@ -155,6 +172,7 @@ def app2():
         return underlying_prices, payoffs
 
     def main():
+        st.title("Options Payoff Chart")
 
         # Input components
         num_positions = st.number_input("Number of Positions", value=1, step=1)
@@ -164,9 +182,12 @@ def app2():
             strike_price = st.number_input(f"Strike Price {i+1}", value=100.0, key=f"strike_price_{i}")
             option_type = st.selectbox(f"Option Type {i+1}", ['Call', 'Put'], key=f"option_type_{i}")
             lots = st.number_input(f"Lots {i+1}", value=1, step=1, key=f"lots_{i}")
-            position = OptionPosition(strike_price, option_type, lots)
+            buy_or_sell = st.selectbox(f"Buy or Sell {i+1}", ['Buy', 'Sell'], key=f"buy_or_sell_{i}")
+            position = OptionPosition(strike_price, option_type, lots, buy_or_sell)
             option_positions.append(position)
 
+        st.markdown("<hr>", unsafe_allow_html=True)
+        st.subheader("Chart Axes Configuration")
         start_price = st.number_input("Start Price", value=0.0)
         end_price = st.number_input("End Price", value=200.0)
         num_points = st.number_input("Number of Points", value=100, step=10)
@@ -174,17 +195,18 @@ def app2():
         # Generate payoff chart
         underlying_prices, payoffs = generate_payoff_chart(option_positions, start_price, end_price, num_points)
 
+        st.subheader("Payoff Chart")
         # Plot payoff chart
         plt.plot(underlying_prices, payoffs)
         plt.xlabel("Underlying Price")
         plt.ylabel("Payoff")
-        plt.title("Options Payoff Chart")
         st.pyplot()
 
-        st.set_option('deprecation.showPyplotGlobalUse', False)
+    st.set_option('deprecation.showPyplotGlobalUse', False)
 
     if __name__ == "__main__":
         main()
+
 
 def main():
 
