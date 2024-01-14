@@ -1,84 +1,208 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-#inputs
-# spot, strike, risk free rate, volatility, time to expiry
 
-st.title('Black Scholes Calculator')
+def app1():
+    
+    st.title('Black Scholes Calculator')
 
-col1, col2 = st.columns(2)
+    with st.expander('About this App'):
+        st.write('This app calculates the Option Prices and Option Greeks based on 5 inputs - Spot Price, Strike Price, Daily Volatility, Risk Free Rate of Return and Time to expiry of Contract.')
+        st.write('The Black Scholes formula and calculations are based on the work of economists Fischer Black and Myron Scholes. App built by [Shubhro](https://www.linkedin.com/in/shubhrojyotidey/).')
 
-with col1:
-    spot = st.number_input('Spot Price')
-with col2: 
-    strike = st.number_input('Strike Price')
+    col1, col2 = st.columns(2)
 
-col3, col4, col5 = st.columns(3)
+    with col1:
+        spot = st.number_input('Spot Price')
+    with col2: 
+        strike = st.number_input('Strike Price')
 
-with col3:
-    risk = st.number_input('Risk Free Rate')
-with col4:
-    dailyvol = st.number_input('Daily Volatility')
-with col5:
-    t = st.number_input("Time to Expiry (in months)")
+    col3, col4, col5 = st.columns(3)
 
-if st.button('Calculate Prices and Greeks'):
-    annual_vol = (dailyvol*(252**(1/2)))/100
-    rf = risk/100
-    time = t/12
+    with col3:
+        risk = st.number_input('Risk Free Rate')
+    with col4:
+        dailyvol = st.number_input('Daily Volatility')
+    with col5:
+        t = st.number_input("Time to Expiry (in months)")
 
-    kenegrt = strike*(2.718281**(-rf*time))
-    lnsk = np.log(spot/strike)
-    v22 = (annual_vol**2)/2
-    vt12 = annual_vol*(time**(1/2))
+    if st.button('Calculate Prices and Greeks'):
+        annual_vol = (dailyvol*(252**(1/2)))/100
+        rf = risk/100
+        time = t/12
 
-    d1 = (lnsk + (rf + v22)*time)/vt12
-    d2 = d1 - vt12
+        kenegrt = strike*(2.718281**(-rf*time))
+        lnsk = np.log(spot/strike)
+        v22 = (annual_vol**2)/2
+        vt12 = annual_vol*(time**(1/2))
 
-    nd1 = norm.cdf(d1)
-    nd2 = norm.cdf(d2)
+        d1 = (lnsk + (rf + v22)*time)/vt12
+        d2 = d1 - vt12
 
-    callprice = spot*norm.cdf(d1) - kenegrt*norm.cdf(d2)
-    putprice = kenegrt*norm.cdf(-d2) - spot*norm.cdf(-d1)
+        nd1 = norm.cdf(d1)
+        nd2 = norm.cdf(d2)
 
-    call_delta = norm.cdf(d1)
-    put_delta = norm.cdf(-d1)
+        callprice = spot*norm.cdf(d1) - kenegrt*norm.cdf(d2)
+        putprice = kenegrt*norm.cdf(-d2) - spot*norm.cdf(-d1)
 
-    call_gamma = norm.cdf(d1)/(spot*vt12)
-    put_gamma = call_gamma
+        call_delta = norm.cdf(d1)
+        put_delta = norm.cdf(-d1)
 
-    call_theta = -((spot*annual_vol*norm.cdf(d1))/(2*(time**(1/2)))) - rf*kenegrt*norm.cdf(d2)
-    put_theta = -((spot*annual_vol*norm.cdf(d1))/(2*(time**(1/2)))) + rf*kenegrt*norm.cdf(-d2)
+        call_gamma = norm.cdf(d1)/(spot*vt12)
+        put_gamma = call_gamma
 
-    call_vega = spot*norm.cdf(d1)*(time**(1/2))
-    put_vega = call_vega
+        call_theta = -((spot*annual_vol*norm.cdf(d1))/(2*(time**(1/2)))) - rf*kenegrt*norm.cdf(d2)
+        put_theta = -((spot*annual_vol*norm.cdf(d1))/(2*(time**(1/2)))) + rf*kenegrt*norm.cdf(-d2)
 
-    call_rho = kenegrt*time*norm.cdf(d2)
-    put_rho = -kenegrt*time*norm.cdf(-d2)
+        call_vega = spot*norm.cdf(d1)*(time**(1/2))
+        put_vega = call_vega
 
-    st.subheader("Annual Volatility: " + str(annual_vol))
-    st.subheader("kenegrt: " + str(kenegrt))
-    st.subheader("lnsk: " + str(lnsk))
-    st.subheader("v22: " + str(v22))
-    st.subheader("vt12: " + str(vt12))
-    st.subheader("d1: " + str(d1))
-    st.subheader("d2: " + str(d2))
-    st.subheader("nd1: " + str(nd1))
-    st.subheader("nd2: " + str(nd2))
+        call_rho = kenegrt*time*norm.cdf(d2)
+        put_rho = -kenegrt*time*norm.cdf(-d2)
 
+        data = {
+            "Parameter": ["Annual Volatility", "Call Price", "Put Price"],
+            "Value": [annual_vol, callprice, putprice]
+        }
 
-    st.subheader("Call Price: " + str(callprice))
-    st.subheader("Put Price: " + str(putprice))
-    st.subheader("Call Delta: " + str(call_delta))
-    st.subheader("Put Delta: " + str(put_delta))
-    st.subheader("Call Gamma: " + str(call_gamma))
-    st.subheader("Put Gamma: " + str(put_gamma))
-    st.subheader("Call Theta: " + str(call_theta))
-    st.subheader("Put Theta: " + str(put_theta))
-    st.subheader("Call Vega: " + str(call_vega))
-    st.subheader("Put Vega: " + str(put_vega))
-    st.subheader("Call Rho: " + str(call_rho))
-    st.subheader("Put Rho: " + str(put_rho))
+        data_delta = {
+            "Call Delta": [call_delta],
+            "Put Delta": [put_delta]
+        }
 
+        data_rho = {
+            "Call Rho": [call_rho],
+            "Put Rho": [put_rho]
+        }
+
+        data_theta = {
+            "Call Theta": [call_theta],
+            "Put Theta": [put_theta]
+        }
+
+        data_gamma = {
+            "Call Gamma": [call_gamma],
+            "Put Gamma": [put_gamma]
+        }
+
+        data_vega = {
+            "Call Vega": [call_vega],
+            "Put Vega": [put_vega]
+        }
+
+        headers = ["Parameter", "Value"]
+        delta_headers = ["Call Delta", "Put Delta"]
+        rho_headers = ["Call Rho", "Put Rho"]
+        theta_headers = ["Call Theta", "Put Theta"]
+        gamma_headers = ["Call Gamma", "Put Gamma"]
+        vega_headers = ["Call Vega", "Put Vega"]
+
+        df = pd.DataFrame(data, columns=headers)
+        df_delta = pd.DataFrame(data_delta, columns=delta_headers)
+        df_delta.reset_index(drop=True, inplace=True)
+
+        df_rho = pd.DataFrame(data_rho, columns=rho_headers)
+        df_rho.reset_index(drop=True, inplace=True)
+
+        df_theta = pd.DataFrame(data_theta, columns=theta_headers)
+        df_theta.reset_index(drop=True, inplace=True)
+
+        df_gamma = pd.DataFrame(data_gamma, columns=gamma_headers)
+        df_gamma.reset_index(drop=True, inplace=True)
+
+        df_vega = pd.DataFrame(data_vega, columns=vega_headers)
+        df_vega.reset_index(drop=True, inplace=True)
+
+        st.table(df)
+        st.table(df_delta)
+        st.table(df_rho)
+        st.table(df_theta)
+        st.table(df_gamma)
+        st.table(df_vega)
+
+def app2():
+
+    st.title('Options Strategy Builder')
+    class OptionPosition:
+        def __init__(self, strike_price, option_type, lots):
+            self.strike_price = strike_price
+            self.option_type = option_type
+            self.lots = lots
+
+        def __hash__(self):
+            return hash((self.strike_price, self.option_type, self.lots))
+
+    def calculate_payoff(option_positions, underlying_price):
+        total_payoff = 0
+        for position in option_positions:
+            if position.option_type == 'Call':
+                payoff = np.maximum(underlying_price - position.strike_price, 0) * position.lots
+            else:
+                payoff = np.maximum(position.strike_price - underlying_price, 0) * position.lots
+            total_payoff += payoff
+        return total_payoff
+
+    @st.cache_resource(hash_funcs={OptionPosition: lambda x: hash((x.strike_price, x.option_type, x.lots))})
+    def generate_payoff_chart(option_positions, start_price, end_price, num_points):
+        underlying_prices = np.linspace(start_price, end_price, num_points)
+        payoffs = []
+        for price in underlying_prices:
+            payoff = calculate_payoff(option_positions, price)
+            payoffs.append(payoff)
+        return underlying_prices, payoffs
+
+    def main():
+
+        # Input components
+        num_positions = st.number_input("Number of Positions", value=1, step=1)
+        option_positions = []
+        for i in range(num_positions):
+            st.subheader(f"Position {i+1}")
+            strike_price = st.number_input(f"Strike Price {i+1}", value=100.0, key=f"strike_price_{i}")
+            option_type = st.selectbox(f"Option Type {i+1}", ['Call', 'Put'], key=f"option_type_{i}")
+            lots = st.number_input(f"Lots {i+1}", value=1, step=1, key=f"lots_{i}")
+            position = OptionPosition(strike_price, option_type, lots)
+            option_positions.append(position)
+
+        start_price = st.number_input("Start Price", value=0.0)
+        end_price = st.number_input("End Price", value=200.0)
+        num_points = st.number_input("Number of Points", value=100, step=10)
+
+        # Generate payoff chart
+        underlying_prices, payoffs = generate_payoff_chart(option_positions, start_price, end_price, num_points)
+
+        # Plot payoff chart
+        plt.plot(underlying_prices, payoffs)
+        plt.xlabel("Underlying Price")
+        plt.ylabel("Payoff")
+        plt.title("Options Payoff Chart")
+        st.pyplot()
+
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+
+    if __name__ == "__main__":
+        main()
+
+def main():
+
+    # Create tabs
+    tabs = ["Black Scholes Calculator", "Options Strategy Builder"]
+    selected_tab = st.sidebar.selectbox("Select a tab", tabs)
+
+    # Footer text on the sidebar using HTML tags
+    st.sidebar.markdown("<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><hr>", unsafe_allow_html=True)
+    st.sidebar.markdown("Your Footer Text Here", unsafe_allow_html=True)
+
+    st.set_option('deprecation.showPyplotGlobalUse', False)
+
+    # Display the selected app based on the tab
+    if selected_tab == "Black Scholes Calculator":
+        app1()
+    elif selected_tab == "Options Strategy Builder":
+        app2()
+
+if __name__ == "__main__":
+    main()
