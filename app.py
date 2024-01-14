@@ -172,6 +172,7 @@ def app2():
         return underlying_prices, payoffs
 
     def main():
+        st.title("Options Payoff Chart")
 
         # Input components
         num_positions = st.number_input("Number of Positions", value=1, step=1)
@@ -211,11 +212,11 @@ def main():
 
     # Create tabs
     tabs = ["Black Scholes Calculator", "Options Strategy Builder"]
-    selected_tab = st.sidebar.selectbox("Select Tool", tabs)
+    selected_tab = st.sidebar.selectbox("Select a tab", tabs)
 
     # Footer text on the sidebar using HTML tags
     st.sidebar.markdown("<hr>", unsafe_allow_html=True)
-    st.sidebar.markdown("Developed by [Shubhro Jyoti Dey](https://www.linkedin.com/in/shubhrojyotidey)", unsafe_allow_html=True)
+    st.sidebar.markdown("Developed by [Shubhro Jyoti Dey](https://linkedin.com/in/shubhrojyotidey)", unsafe_allow_html=True)
 
     st.set_option('deprecation.showPyplotGlobalUse', False)
 
