@@ -178,10 +178,10 @@ def app2():
         option_positions = []
         for i in range(num_positions):
             st.subheader(f"Position {i+1}")
-            strike_price = st.number_input(f"Strike Price", value=100.0, step = 100, key=f"strike_price_{i}")
-            option_type = st.selectbox(f"Option Type", ['Call', 'Put'], key=f"option_type_{i}")
-            lots = st.number_input(f"Number of Lots", value=1, step=1, key=f"lots_{i}")
-            buy_or_sell = st.selectbox(f"Buy or Sell", ['Buy', 'Sell'], key=f"buy_or_sell_{i}")
+            strike_price = st.number_input(f"Strike Price {i+1}", value=100.0, key=f"strike_price_{i}")
+            option_type = st.selectbox(f"Option Type {i+1}", ['Call', 'Put'], key=f"option_type_{i}")
+            lots = st.number_input(f"Lots {i+1}", value=1, step=1, key=f"lots_{i}")
+            buy_or_sell = st.selectbox(f"Buy or Sell {i+1}", ['Buy', 'Sell'], key=f"buy_or_sell_{i}")
             position = OptionPosition(strike_price, option_type, lots, buy_or_sell)
             option_positions.append(position)
 
