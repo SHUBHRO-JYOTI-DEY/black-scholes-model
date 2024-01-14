@@ -172,7 +172,6 @@ def app2():
         return underlying_prices, payoffs
 
     def main():
-        st.title("Options Payoff Chart")
 
         # Input components
         num_positions = st.number_input("Number of Positions", value=1, step=1)
