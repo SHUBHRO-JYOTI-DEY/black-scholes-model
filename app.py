@@ -193,7 +193,7 @@ def main():
     selected_tab = st.sidebar.selectbox("Select a tab", tabs)
 
     # Footer text on the sidebar using HTML tags
-    st.sidebar.markdown("<br><hr>", unsafe_allow_html=True)
+    st.sidebar.markdown("<hr>", unsafe_allow_html=True)
     st.sidebar.markdown("Developed by Shubhro Jyoti Dey", unsafe_allow_html=True)
 
     st.set_option('deprecation.showPyplotGlobalUse', False)
