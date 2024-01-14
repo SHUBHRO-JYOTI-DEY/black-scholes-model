@@ -211,11 +211,11 @@ def main():
 
     # Create tabs
     tabs = ["Black Scholes Calculator", "Options Strategy Builder"]
-    selected_tab = st.sidebar.selectbox("Select a tab", tabs)
+    selected_tab = st.sidebar.selectbox("Select Tool", tabs)
 
     # Footer text on the sidebar using HTML tags
     st.sidebar.markdown("<hr>", unsafe_allow_html=True)
-    st.sidebar.markdown("Developed by Shubhro Jyoti Dey", unsafe_allow_html=True)
+    st.sidebar.markdown("Developed by [Shubhro Jyoti Dey](https://www.linkedin.com/in/shubhrojyotidey)", unsafe_allow_html=True)
 
     st.set_option('deprecation.showPyplotGlobalUse', False)
 
